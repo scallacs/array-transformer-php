@@ -1,37 +1,82 @@
 # array-transform-php
 
+# Set the template engine
+
+## Synthaxe
 
 ```php
 [
     'KeyDestination' => 'KeySource'
 ]
 ```
+### @get()
 
-## Synthaxe
-
-### Accessing keys {key}
+#### Accessing keys
 ```php
-"keyDestination" => "{key}"
+"keyDestination" => "@get(key)"
 ```
 
-### Multiple key into one
+#### Multiple key into one
 ```php
-"keyDestination" => "My name is {firstname} {lastname}
+"keyDestination" => "My name is @get(firstname) @get(lastname)"
 ```
 
-### Nested keys
+#### Nested keys
 
 ```php
-"keyDestination" => "My name is {payload[0].user.firstname}"
+"keyDestination" => "My name is @get(payload[0].user.firstname)"
 ```
 
-### Custom transformer
+### @forEach()
+
+```php
+"keyDestination" => '@forEach(keyToAnIterate, "Hello @get(firstname) @get(lastname)" )'
+```
+
+### @compute()
+
+```php
+"keyDestination" => '@compute(10 * @get(data.a) / @get(data.b))'
+```
+### @regex()
+
+TODO
+
+### @implode(keyToIterate, renderexpression , glue)
+```php
+"keyDestination" => '@compute(10 * @get(data.a) / @get(data.b))'
+```
+
+### @customCommand() 
+
+You can define your own custom command: 
+```php
+"keyDestination" => '@customCommand(param1, param2)'
+```
+
+
+### Custom transformer with a function
 ```php
 "keyDestination" => function ($data){
     // Do your magic...
     return $result;
 }
 ```
+
+## Creating custom transformer
+
+```php
+class CustomTransformer extends Transformer{
+
+    public function apply(){
+        // Access data to convert with $this->data
+        // Access converter data: $this->result
+        
+        return 'my result';
+    }
+}
+```
+
 
 ## Example
 ```php
@@ -57,8 +102,8 @@ $converter = new Converter([
     ]
 ]);
 $convert->convert([
-    'messages' => new ForEach('{each(payload)}', 'Hello {user.firstname} {user.lastname}!')
-    'extra.message' => '{extra.page}/{extra.total/extra.perPage} ({extra.perPage} page(s))'
+    'messages' => '@forEach("payload", "Hello {user.firstname} {user.lastname}!")'
+    'extra.message' => '{extra.page}/@devide(@get("extra.total"), @get("extra.perPage")) ({extra.perPage} page(s))'
 ]);
 
 // Will results in
@@ -72,3 +117,9 @@ $convert->convert([
     ]
 ]
 ```
+
+## Inspiration
+
+- Blade compiler (source https://github.com/illuminate/view/blob/master/Compilers/BladeCompiler.php)
+
+## Real usage
