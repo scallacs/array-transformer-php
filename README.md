@@ -1,5 +1,28 @@
 # array-transform-php
 
+# /!\ Work in progress... /!\ 
+
+## Usage: 
+### Convert array to xml 
+```php
+$converter
+    ->setTemplate('
+     {% for user in users %}
+    <user> 
+        <firstname>{{user.firstname}}</firstname>
+        <lastname>{{user.lastname}}</lastname>
+    </user>
+    {% endfor %}
+    ')
+    ->render([
+        'user' => [
+            'firstname' => 'John',
+            'lastname' => 'Snow'
+        ]
+    ]);
+```
+## TODO from array 
+You can just typecast it ? 
 # Set the template engine
 
 ## Synthaxe

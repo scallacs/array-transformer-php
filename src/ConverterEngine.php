@@ -1,6 +1,7 @@
 <?php
 
 namespace ArrayConverter;
+use \ArrayConverter\TemplateEngineAdapter\AdapterInterface;
 
 /**
  * Description of Converter
@@ -11,7 +12,7 @@ class ConverterEngine
 {
 
     /**
-    * @var TemplateEngineInterfaceInterface
+    * @var AdapterInterface
     */
     protected $templateEngine;
 
@@ -36,7 +37,7 @@ class ConverterEngine
         return $this;
     }
 
-    public function setTemplateEngine(TemplateEngineInterface $templateEngine): ConverterEngine
+    public function setTemplateEngine(AdapterInterface $templateEngine): ConverterEngine
     {
         $this->templateEngine = $templateEngine;
         return $this;
@@ -44,49 +45,61 @@ class ConverterEngine
     /**
      * return array
      */
-    public function render(array $data): array
+    public function render(array $data)
     {
         return $this->_render($data, $this->templateMap);
     }
 
-    public function _render(array $data, array $templateMap): array
+    public function _render(array $data, $templateMap)
     {
-        $results = [];
-        foreach ($templateMap as $key => $template) {
-            // echo "Parsing key: ", $key, '\r\n';
-            if ($key[0] === '@') { // TODO cst
-                // Extracting cmd id
-                $i = 1;
-                while ($i < strlen($key) && $key[$i] != '(') {
-                    $i++;
-                }
-                $cmdId = substr($key, 1, $i-1);
-                if (!isset($this->commands[$cmdId])){
-                    throw new \ArrayConverter\Exception\InvalidCommandException($cmdId);
-                }
-                // Extracting parameters
-                $params = $this->extractParameters(\substr($key, $i+1));
-                $this->commands[$cmdId]->eval($results, $params, $data, $template);
-            } else {
-                if (is_array($template)) {
-                    $results[$key] = $this->_render($data, $template);
-                } elseif (is_callable($template)) {
-                    $results[$key] = $template($data);
+        if (is_string($templateMap)) {
+            return $this->templateEngine->setTemplate($templateMap)->render($data);
+        } elseif (is_array($templateMap)) {
+            $results = [];
+            foreach ($templateMap as $key => $template) {
+                // echo "Parsing key: ", $key, '\r\n';
+                if ($key[0] === '@') {
+                    // Extracting cmd id
+                    $i = 1;
+                    while ($i < strlen($key) && $key[$i] != '(') {
+                        $i++;
+                    }
+                    $cmdId = substr($key, 1, $i-1);
+                    if (!isset($this->commands[$cmdId])) {
+                        throw new \ArrayConverter\Exception\InvalidCommandException($cmdId);
+                    }
+                    // Extracting parameters
+                    $params = $this->extractParameters(\substr($key, $i+1));
+                    $this->commands[$cmdId]->eval($results, $params, $data, $template);
                 } else {
-                    $results[$key] = $this->templateEngine->setTemplate($template)->render($data);
+                    if (is_array($template)) {
+                        $result = $this->_render($data, $template);
+                    } elseif (is_callable($template)) {
+                        $result = $template($data);
+                    } else {
+                        $result = $this->templateEngine->setTemplate($template)->render($data);
+                    }
+                    if (is_array($result)) {
+                        $results[$key] = ((isset($results[$key]) && is_array($results[$key])) ? $results[$key]: []) + $result;
+                    } else {
+                        $results[$key] = $result;
+                    }
                 }
+                    // $results[$key] = $this->templateEngine->render($data);
             }
-            // $results[$key] = $this->templateEngine->render($data);
+            return $results;
+        } else {
+            throw new \Exception('Invalid argument');
         }
-        return $results;
     }
 
-    public function extractParameters($str){
+    public function extractParameters($str)
+    {
         $results = [];
         $i = 0;
-        while ($i < strlen($str) && $str[$i] != ')'){
+        while ($i < strlen($str) && $str[$i] != ')') {
             $value = '';
-            while ($i < strlen($str) && $str[$i] != ',' && $str[$i] != ')'){
+            while ($i < strlen($str) && $str[$i] != ',' && $str[$i] != ')') {
                 $value .= $str[$i];
                 $i++;
             }

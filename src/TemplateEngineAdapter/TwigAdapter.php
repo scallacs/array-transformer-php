@@ -1,7 +1,9 @@
 <?php
 
-namespace ArrayConverter;
-class TwigTemplateEngineAdapter implements TemplateEngineInterface
+namespace ArrayConverter\TemplateEngineAdapter;
+
+
+class TwigAdapter implements \ArrayConverter\TemplateEngineAdapter\AdapterInterface
 {
 
     public $template;
@@ -11,7 +13,7 @@ class TwigTemplateEngineAdapter implements TemplateEngineInterface
     }
     
 
-    public function setTemplate($template): TemplateEngineInterface
+    public function setTemplate($template)
     {
         $this->template = $template;
         return $this;

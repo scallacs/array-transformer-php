@@ -4,6 +4,9 @@
     "description": "This is a simple PHP library infrastructure for bootstrapping new packages.",
     "keywords": ["library", "starter-kit"],
     "homepage": "http://github.com/nicklaw5/php-library-starter-kit",
+    "scripts": {
+        "unit-test": "phpunit"
+    },
     "license": "MIT",
     "authors": [
         {
@@ -24,7 +27,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "ArrayConverter\\Tests\\": "tests/"
+            "ArrayConverter\\Tests\\": "tests/",
+            "ArrayConverter\\Examples\\": "examples/"
         }
     }
 }

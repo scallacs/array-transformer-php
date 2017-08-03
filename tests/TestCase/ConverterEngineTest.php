@@ -1,7 +1,7 @@
 <?php
 
 namespace ArrayConverter\Test;
-
+use \ArrayConverter\TemplateEngineAdapter\TwigAdapter;
 use PHPUnit\Framework\TestCase;
 
 class ConverterEngineTest extends TestCase
@@ -12,7 +12,7 @@ class ConverterEngineTest extends TestCase
         $converter = new \ArrayConverter\ConverterEngine();
         $converter
         ->addCommand('iterate', new \ArrayConverter\Command\Iterate())
-        ->setTemplateEngine(new \ArrayConverter\TwigTemplateEngineAdapter())
+        ->setTemplateEngine(new TwigAdapter())
         ->setTemplateMap([
             'message' => 'Hello {{name}} {{user.0.firstname}}',
             'from_fct' => function (array $data) {
@@ -21,11 +21,16 @@ class ConverterEngineTest extends TestCase
             'users' => [
                 0 => 'Hello all: {% for user in users %} {{ user.firstname }} {{ user.lastname }} {% endfor %}',
             ],
+            'nested' => [
+                'other' => [
+                    'value' => '{{name}}'
+                ]
+            ],
             'user_2' => [
                 '@iterate(users as user)' => [
-                    'nested' => '{{hello_msg}} {{ _iterate.user.firstname }} {{ _iterate.user.lastname }}',
+                    'nested' => '{{hello_msg}} {{user.firstname }} {{user.lastname }}',
                     'recursivity' => [
-                        '@iterate(users as user)' => '{{ _iterate.user.firstname }} {{ _iterate.user.lastname }}'
+                        '@iterate(users as user)' => '{{user.firstname }} {{user.lastname }}'
                     ]
                 ]
             ]
@@ -49,7 +54,7 @@ class ConverterEngineTest extends TestCase
 
         $converter = new \ArrayConverter\ConverterEngine();
         $converter
-        ->setTemplateEngine(new \ArrayConverter\TwigTemplateEngineAdapter())
+        ->setTemplateEngine(new TwigAdapter())
         ->setTemplateMap([
             '@invalidCmd()' => ''
         ]);
